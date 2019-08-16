@@ -256,7 +256,7 @@ object upickle extends Module{
         ujson.play(),
         core.jvm().test
       )
-      def ivyDeps = super.ivyDeps() ++ bench.jvm.ivyDeps()
+      def ivyDeps = super.ivyDeps()// ++ bench.jvm.ivyDeps()
       def testFrameworks = Seq("upickle.core.UTestFramework")
     }
   }
@@ -277,46 +277,47 @@ object upickle extends Module{
     }
   }
 }
-
-trait BenchModule extends CommonModule{
-  def scalaVersion = "2.12.7"
-  def millSourcePath = build.millSourcePath / "bench"
-  def ivyDeps = Agg(
-    ivy"io.circe::circe-core::0.11.1",
-    ivy"io.circe::circe-generic::0.11.1",
-    ivy"io.circe::circe-parser::0.11.1",
-    ivy"com.typesafe.play::play-json::2.7.2",
-    ivy"io.argonaut::argonaut:6.2.3",
-    ivy"org.json4s::json4s-ast:3.6.5",
-    ivy"com.lihaoyi::sourcecode::0.1.5",
-  )
-}
-
-object bench extends Module {
-  object js extends BenchModule with ScalaJSModule {
-    def scalaJSVersion = "0.6.25"
-    def platformSegment = "js"
-    def moduleDeps = Seq(upickle.js("2.12.7").test)
-    def run(args: String*) = T.command {
-      finalMainClassOpt() match{
-        case Left(err) => mill.eval.Result.Failure(err)
-        case Right(_) =>
-          ScalaJSWorkerApi.scalaJSWorker().run(
-            toolsClasspath().map(_.path),
-            nodeJSConfig(),
-            fullOpt().path.toIO
-          )
-          mill.eval.Result.Success(())
-      }
-    }
-  }
-
-  object jvm extends BenchModule {
-    def platformSegment = "jvm"
-    def moduleDeps = Seq(upickle.jvm("2.12.7").test)
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.fasterxml.jackson.module::jackson-module-scala:2.9.8",
-      ivy"com.fasterxml.jackson.core:jackson-databind:2.9.4",
-    )
-  }
-}
+//
+//trait BenchModule extends CommonModule{
+//  def scalaVersion = "2.12.7"
+//  def millSourcePath = build.millSourcePath / "bench"
+//  def ivyDeps = Agg(
+//    ivy"io.circe::circe-core::0.11.1",
+//    ivy"io.circe::circe-generic::0.11.1",
+//    ivy"io.circe::circe-parser::0.11.1",
+//    ivy"com.typesafe.play::play-json::2.7.2",
+//    ivy"io.argonaut::argonaut:6.2.3",
+//    ivy"org.json4s::json4s-ast:3.6.5",
+//    ivy"com.lihaoyi::sourcecode::0.1.5",
+//  )
+//}
+// Bench is causing compile problems for some reason. We don't care passionately, so let's take it out for now:
+//
+//object bench extends Module {
+//  object js extends BenchModule with ScalaJSModule {
+//    def scalaJSVersion = "0.6.25"
+//    def platformSegment = "js"
+//    def moduleDeps = Seq(upickle.js("2.12.7").test)
+//    def run(args: String*) = T.command {
+//      finalMainClassOpt() match{
+//        case Left(err) => mill.eval.Result.Failure(err)
+//        case Right(_) =>
+//          ScalaJSWorkerApi.scalaJSWorker().run(
+//            toolsClasspath().map(_.path),
+//            nodeJSConfig(),
+//            fullOpt().path.toIO
+//          )
+//          mill.eval.Result.Success(())
+//      }
+//    }
+//  }
+//
+//  object jvm extends BenchModule {
+//    def platformSegment = "jvm"
+//    def moduleDeps = Seq(upickle.jvm("2.12.7").test)
+//    def ivyDeps = super.ivyDeps() ++ Agg(
+//      ivy"com.fasterxml.jackson.module::jackson-module-scala:2.9.8",
+//      ivy"com.fasterxml.jackson.core:jackson-databind:2.9.4",
+//    )
+//  }
+//}
