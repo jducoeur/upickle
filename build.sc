@@ -345,14 +345,14 @@ object ujson extends Module{
     def moduleDeps = Seq(ujson.jvm())
     def ivyDeps = Agg(ivy"io.argonaut::argonaut:6.2.3")
   }
-  object json4s extends Cross[Json4sModule]("2.12.7")
+  object json4s extends Cross[Json4sModule]("2.12.7", "2.13.0")
   class Json4sModule(val crossScalaVersion: String) extends CommonPublishModule{
     def artifactName = "ujson-json4s"
     def platformSegment = "jvm"
     def moduleDeps = Seq(ujson.jvm())
     def ivyDeps = Agg(
-      ivy"org.json4s::json4s-ast:3.6.5",
-      ivy"org.json4s::json4s-native:3.6.5"
+      ivy"org.json4s::json4s-ast:3.6.7",
+      ivy"org.json4s::json4s-native:3.6.7"
     )
   }
 
@@ -426,7 +426,7 @@ object upickle extends Module{
     object test extends Tests with CommonModule{
       def moduleDeps = super.moduleDeps ++ Seq(
         ujson.argonaut(),
-        ujson.circe(),
+//        ujson.circe(),
         ujson.json4s(),
         ujson.play(),
         core.jvm().test
