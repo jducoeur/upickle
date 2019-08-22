@@ -345,7 +345,7 @@ object ujson extends Module{
     def moduleDeps = Seq(ujson.jvm())
     def ivyDeps = Agg(ivy"io.argonaut::argonaut:6.2.3")
   }
-  object json4s extends Cross[Json4sModule]("2.12.7", "2.13.0")
+  object json4s extends Cross[Json4sModule]("2.12.7")
   class Json4sModule(val crossScalaVersion: String) extends CommonPublishModule{
     def artifactName = "ujson-json4s"
     def platformSegment = "jvm"
@@ -371,7 +371,7 @@ object ujson extends Module{
     def platformSegment = "jvm"
     def moduleDeps = Seq(ujson.jvmOld())
     def ivyDeps = Agg(
-      ivy"com.typesafe.play::play-json:2.7.2",
+      ivy"com.typesafe.play::play-json:2.7.4",
       ivy"com.fasterxml.jackson.core:jackson-databind:2.9.4"
     )
   }
@@ -380,7 +380,7 @@ object ujson extends Module{
     def platformSegment = "jvm"
     def moduleDeps = Seq(ujson.jvm())
     def ivyDeps = Agg(
-      ivy"com.typesafe.play::play-json:2.7.2",
+      ivy"com.typesafe.play::play-json:2.7.4",
       ivy"com.fasterxml.jackson.core:jackson-databind:2.9.4"
     )
   }
@@ -437,7 +437,7 @@ object upickle extends Module{
   }
 
   object jsOld extends Cross[OldJsModule]("2.11.12")
-  object js extends Cross[JsModule]("2.12.7", "2.13.0")
+//  object js extends Cross[JsModule]("2.12.7", "2.13.0")
 
   class OldJsModule(val crossScalaVersion: String) extends UpickleModule with OldCommonJsModule {
     def moduleDeps = Seq(ujson.jsOld(), upack.jsOld(), implicits.jsOld())
