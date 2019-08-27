@@ -281,8 +281,7 @@ object ujson extends Module{
     def artifactName = "ujson"
     trait JawnTestModule extends OldCommonTestModule{
       def ivyDeps = T{
-        if (scalaVersion() == "2.13.0") Agg()
-        else Agg(
+        Agg(
           ivy"org.scalatest::scalatest::3.0.7",
           ivy"org.scalacheck::scalacheck::1.14.0"
         )
@@ -361,6 +360,7 @@ object ujson extends Module{
     def artifactName = "ujson-circe"
     def platformSegment = "jvm"
     def moduleDeps = Seq(ujson.jvm())
+    // Circe does not yet have a released 2.13 version:
     def ivyDeps = Agg(ivy"io.circe::circe-parser:0.11.1")
   }
 
@@ -386,7 +386,7 @@ object ujson extends Module{
   }
 }
 
-trait UpickleModule extends CommonPublishModule{
+trait OldUpickleModule extends CommonPublishModule{
   def artifactName = "upickle"
   def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
     ivy"com.lihaoyi::acyclic:0.1.8"
@@ -403,33 +403,62 @@ trait UpickleModule extends CommonPublishModule{
     "-feature"
   )
 }
+trait UpickleModule extends CommonPublishModule{
+  def artifactName = "upickle"
+  def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+    ivy"com.lihaoyi::acyclic:0.2.0"
+  )
+  def compileIvyDeps = Agg(
+    ivy"com.lihaoyi::acyclic:0.2.0",
+    ivy"org.scala-lang:scala-reflect:${scalaVersion()}",
+    ivy"org.scala-lang:scala-compiler:${scalaVersion()}"
+  )
+  def scalacOptions = Seq(
+    "-unchecked",
+    "-deprecation",
+    "-encoding", "utf8",
+    "-feature"
+  )
+}
 
 
 object upickle extends Module{
   object jvmOld extends Cross[OldJvmModule]("2.11.12")
   object jvm extends Cross[JvmModule]("2.12.7", "2.13.0")
-  class OldJvmModule(val crossScalaVersion: String) extends UpickleModule with OldCommonJvmModule{
+  class OldJvmModule(val crossScalaVersion: String) extends OldUpickleModule with OldCommonJvmModule{
     def moduleDeps = Seq(ujson.jvmOld(), upack.jvmOld(), implicits.jvmOld())
 
-    object test extends Tests with CommonModule{
-      def moduleDeps = super.moduleDeps ++ Seq(
-        ujson.playOld(),
-        core.jvmOld().test
-      )
-      def ivyDeps = super.ivyDeps()// ++ bench.jvm.ivyDeps()
-      def testFrameworks = Seq("upickle.core.UTestFramework")
-    }
+    // TODO: figure out how to get this working. For the moment, it fails to compile, because
+    // JvmExampleTests depends on *all* of the ujson modules, and we don't have all of those
+    // building for 2.11:
+//    object test extends Tests with CommonModule{
+//      // Note that we specifically are *not* bothering to try to support most of the modules on 2.11, because that
+//      // way lies dependency madness:
+//      def moduleDeps = super.moduleDeps ++ Seq(
+//        ujson.playOld(),
+//        core.jvmOld().test
+//      )
+//      def ivyDeps = super.ivyDeps()// ++ bench.jvm.ivyDeps()
+//      def testFrameworks = Seq("upickle.core.UTestFramework")
+//    }
   }
   class JvmModule(val crossScalaVersion: String) extends UpickleModule with CommonJvmModule{
     def moduleDeps = Seq(ujson.jvm(), upack.jvm(), implicits.jvm())
 
     object test extends Tests with CommonModule{
-      def moduleDeps = super.moduleDeps ++ Seq(
-        ujson.argonaut(),
-//        ujson.circe(),
-        ujson.json4s(),
-        ujson.play(),
-        core.jvm().test
+      def moduleDeps = {
+        if (crossScalaVersion == "2.13.0") super.moduleDeps
+        else super.moduleDeps ++ Seq(
+          ujson.argonaut(),
+          ujson.circe(),
+          ujson.json4s(),
+          ujson.play(),
+          core.jvm().test
+        )
+      }
+      def sources = T.sources (
+        if (crossScalaVersion == "2.13.0") super.sources().filter(!_.path.last.contains("-jvm"))
+        else super.sources()
       )
       def ivyDeps = super.ivyDeps()// ++ bench.jvm.ivyDeps()
       def testFrameworks = Seq("upickle.core.UTestFramework")
@@ -439,16 +468,16 @@ object upickle extends Module{
   object jsOld extends Cross[OldJsModule]("2.11.12")
 //  object js extends Cross[JsModule]("2.12.7", "2.13.0")
 
-  class OldJsModule(val crossScalaVersion: String) extends UpickleModule with OldCommonJsModule {
+  class OldJsModule(val crossScalaVersion: String) extends OldUpickleModule with OldCommonJsModule {
     def moduleDeps = Seq(ujson.jsOld(), upack.jsOld(), implicits.jsOld())
 
-    def scalacOptions = T{
-      super.scalacOptions() ++ Seq({
-        val a = build.millSourcePath.toString.replaceFirst("[^/]+/?$", "")
-        val g = "https://raw.githubusercontent.com/lihaoyi/upickle"
-        s"-P:scalajs:mapSourceURI:$a->$g/v${publishVersion()}/"
-      })
-    }
+//    def scalacOptions = T{
+//      super.scalacOptions() ++ Seq({
+//        val a = build.millSourcePath.toString.replaceFirst("[^/]+/?$", "")
+//        val g = "https://raw.githubusercontent.com/lihaoyi/upickle"
+//        s"-P:scalajs:mapSourceURI:$a->$g/v${publishVersion()}/"
+//      })
+//    }
     object test extends Tests with CommonModule{
       def moduleDeps = super.moduleDeps ++ Seq(core.jsOld().test)
     }
@@ -456,13 +485,14 @@ object upickle extends Module{
   class JsModule(val crossScalaVersion: String) extends UpickleModule with CommonJsModule {
     def moduleDeps = Seq(ujson.js(), upack.js(), implicits.js())
 
-    def scalacOptions = T{
-      super.scalacOptions() ++ Seq({
-        val a = build.millSourcePath.toString.replaceFirst("[^/]+/?$", "")
-        val g = "https://raw.githubusercontent.com/lihaoyi/upickle"
-        s"-P:scalajs:mapSourceURI:$a->$g/v${publishVersion()}/"
-      })
-    }
+    // This appears to be gone in the mainline:
+//    def scalacOptions = T{
+//      super.scalacOptions() ++ Seq({
+//        val a = build.millSourcePath.toString.replaceFirst("[^/]+/?$", "")
+//        val g = "https://raw.githubusercontent.com/lihaoyi/upickle"
+//        s"-P:scalajs:mapSourceURI:$a->$g/v${publishVersion()}/"
+//      })
+//    }
     object test extends Tests with CommonModule{
       def moduleDeps = super.moduleDeps ++ Seq(core.js().test)
     }
