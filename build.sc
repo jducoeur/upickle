@@ -239,7 +239,7 @@ object ujson extends Module{
     )
   }
 
-  object circe extends Cross[CirceModule]("2.12.7")
+  object circe extends Cross[CirceModule]("2.11.12", "2.12.7")
   class CirceModule(val crossScalaVersion: String) extends CommonPublishModule{
     def artifactName = "ujson-circe"
     def platformSegment = "jvm"
