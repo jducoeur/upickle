@@ -303,16 +303,7 @@ object upickle extends Module{
     object test extends Tests with CommonModule{
       def moduleDeps = {
         if (crossScalaVersion == "2.13.0") super.moduleDeps
-        else if (crossScalaVersion == "2.11.12") super.moduleDeps ++ Seq(
-          // TODO: not all of these work in 2.11 yet, so we're not going to worry about them:
-//          ujson.argonaut(),
-//          ujson.circe(),
-//          ujson.json4s(),
-          ujson.play(),
-          core.jvm().test
-        )
         else super.moduleDeps ++ Seq(
-          // TODO: not all of these work in 2.11 yet:
           ujson.argonaut(),
           ujson.circe(),
           ujson.json4s(),
