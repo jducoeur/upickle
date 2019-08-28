@@ -253,10 +253,21 @@ object ujson extends Module{
     def artifactName = "ujson-play"
     def platformSegment = "jvm"
     def moduleDeps = Seq(ujson.jvm())
-    def ivyDeps = Agg(
-      ivy"com.typesafe.play::play-json:2.7.4",
-      ivy"com.fasterxml.jackson.core:jackson-databind:2.9.4"
-    )
+    def ivyDeps = T{
+      if (isOld())
+        // For 2.11, we want Play 2.5:
+        // TODO: this is a bit over-simplified: our 2.11/2.13 and 2.5/2.7 upgrades aren't strictly coupled. But
+        // it's a decent rule of thumb to start, anyway:
+        Agg(
+          ivy"com.typesafe.play::play-json:2.5.19",
+          ivy"com.fasterxml.jackson.core:jackson-databind:2.9.4"
+        )
+      else
+        Agg(
+          ivy"com.typesafe.play::play-json:2.7.4",
+          ivy"com.fasterxml.jackson.core:jackson-databind:2.9.4"
+        )
+    }
   }
 }
 

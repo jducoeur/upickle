@@ -66,6 +66,16 @@ Similarly, to run all unit tests:
 mill __.test
 ```
 
+#### Packaging
+
+To create the JAR files:
+```
+mill __.jar
+```
+
+(There's also a `__.assembly` task, which I believe creates fatjars,
+but I can't see why we would care in this case.)
+
 #### When Things Silently Fail
 
 Mill has one iffy characteristic: when something is broken in the
